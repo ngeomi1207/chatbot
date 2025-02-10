@@ -100,18 +100,36 @@ function handlePostback(sender_psid, payload) {
 
 // 9️⃣ Hàm xử lý lệnh "Start"
 function handleStart(sender_psid) {
+    // Kiểm tra nếu người dùng đã trong hàng chờ
+    if (waitingUsers.includes(sender_psid)) {
+        sendMessage(sender_psid, "🔄 Bạn đang chờ kết nối với một người khác...");
+        return;
+    }
+
     if (waitingUsers.length > 0) {
+        // Lấy người dùng đầu tiên trong danh sách chờ
         const partner_psid = waitingUsers.shift();
+
+        // Đảm bảo không ghép đôi với chính mình
+        if (partner_psid === sender_psid) {
+            waitingUsers.push(sender_psid);
+            sendMessage(sender_psid, "🔄 Đang chờ kết nối với một người khác...");
+            return;
+        }
+
+        // Kết nối hai người dùng
         activeChats.set(sender_psid, partner_psid);
         activeChats.set(partner_psid, sender_psid);
 
         sendMessage(sender_psid, "✅ Bạn đã được kết nối với một người ẩn danh!");
         sendMessage(partner_psid, "✅ Bạn đã được kết nối với một người ẩn danh!");
     } else {
+        // Thêm vào danh sách chờ nếu không có ai
         waitingUsers.push(sender_psid);
         sendMessage(sender_psid, "🔄 Đang chờ kết nối với một người khác...");
     }
 }
+
 
 // 🔟 Hàm xử lý lệnh "End"
 function handleEnd(sender_psid) {
